@@ -16,13 +16,29 @@ def compress_pdf(input_pdf, output_pdf, compression_level):
 
     # Calculate the compression quality
 
-    compression_quality = compression_level / 100
+    compression_quality = 1 - (compression_level / 100)
 
     # Compress each page of the PDF
 
     for page in doc:
 
-        page.compress(compression_quality)
+        # Convert the page to an image
+
+        pix = page.get_pixmap()
+
+        img_data = pix.get_png_data(compression=9 - int(compression_quality * 9))
+
+        # Recreate the PDF page with the compressed image
+
+        new_page = doc.new_page(width=pix.width, height=pix.height)
+
+        new_page.set_pixmap(fitz.Pixmap(img_data))
+
+        # Replace the original page with the compressed page
+
+        doc.delete_page(page.number)
+
+        doc.insert_page(page.number, new_page)
 
     # Save the compressed PDF
 
@@ -86,3 +102,7 @@ if __name__ == "__main__":
 
     main()
 
+
+
+     
+        
